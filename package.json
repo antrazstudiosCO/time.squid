@@ -1,5 +1,5 @@
 {
-  "name": "time.squid",
+  "name": "timesquid",
   "version": "0.0.0",
   "author": "CarlosVasquez <ingcarlosvasquez@outlook.com>",
   "description": "Proyecto para el control de llegada y salida de personal",
@@ -22,7 +22,7 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
-    "productName": "time.squid",
+    "productName": "TimeSquid",
     "appId": "org.simulatedgreg.electron-vue",
     "directories": {
       "output": "build"

@@ -6,7 +6,7 @@
 
 <script>
   export default {
-    name: 'time.squid'
+    name: 'TimeSquid'
   }
 </script>
 
