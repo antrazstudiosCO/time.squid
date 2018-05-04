@@ -19,10 +19,26 @@ function createWindow () {
   /**
    * Initial window options
    */
+  let titleBarStylev
+  if (process.platform !== 'darwin') {
+    titleBarStylev = 'customButtonsOnHover'
+  } else if (process.platform === 'darwin') {
+    titleBarStylev = 'hidden'
+  }
   mainWindow = new BrowserWindow({
-    height: 563,
-    useContentSize: true,
-    width: 1000
+    title: 'Time.Squid',
+    height: 650,
+    width: 1000,
+    minHeight: 650,
+    minWidth: 1000,
+    center: true,
+    autoHideMenuBar: true,
+    titleBarStyle: titleBarStylev,
+    enableLargerThanScreen: true,
+    hasShadow: true,
+    backgroundColor: '#ecf0f1',
+    maximizable: false,
+    frame: false
   })
 
   mainWindow.loadURL(winURL)

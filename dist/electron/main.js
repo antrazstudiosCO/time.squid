@@ -2559,10 +2559,26 @@ var mainWindow = void 0;
 var winURL = process.env.NODE_ENV === 'development' ? 'http://localhost:9080' : 'file://' + __dirname + '/index.html';
 
 function createWindow() {
+  var titleBarStylev = void 0;
+  if (process.platform !== 'darwin') {
+    titleBarStylev = 'customButtonsOnHover';
+  } else if (process.platform === 'darwin') {
+    titleBarStylev = 'hidden';
+  }
   mainWindow = new __WEBPACK_IMPORTED_MODULE_0_electron__["BrowserWindow"]({
-    height: 563,
-    useContentSize: true,
-    width: 1000
+    title: 'Time.Squid',
+    height: 650,
+    width: 1000,
+    minHeight: 650,
+    minWidth: 1000,
+    center: true,
+    autoHideMenuBar: true,
+    titleBarStyle: titleBarStylev,
+    enableLargerThanScreen: true,
+    hasShadow: true,
+    backgroundColor: '#ecf0f1',
+    maximizable: false,
+    frame: false
   });
 
   mainWindow.loadURL(winURL);
@@ -2585,7 +2601,7 @@ __WEBPACK_IMPORTED_MODULE_0_electron__["app"].on('activate', function () {
     createWindow();
   }
 });
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, "src/main"))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, "src\\main"))
 
 /***/ }),
 /* 16 */
@@ -7205,13 +7221,13 @@ function map_obj(obj, fn){
   }, {})
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, "node_modules/7zip"))
+/* WEBPACK VAR INJECTION */}.call(exports, "node_modules\\7zip"))
 
 /***/ }),
 /* 46 */
 /***/ (function(module, exports) {
 
-module.exports = {"_from":"7zip@0.0.6","_id":"7zip@0.0.6","_inBundle":false,"_integrity":"sha1-nK+xca+CMpSQNTtIFvAzR6oVCjA=","_location":"/7zip","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"7zip@0.0.6","name":"7zip","escapedName":"7zip","rawSpec":"0.0.6","saveSpec":null,"fetchSpec":"0.0.6"},"_requiredBy":["/electron-devtools-installer"],"_resolved":"https://registry.npmjs.org/7zip/-/7zip-0.0.6.tgz","_shasum":"9cafb171af82329490353b4816f03347aa150a30","_spec":"7zip@0.0.6","_where":"/Users/carlosvasquez/Documents/Github Projects/time.squid/node_modules/electron-devtools-installer","bin":{"7z":"7zip-lite/7z.exe"},"bugs":{"url":"https://github.com/fritx/win-7zip/issues"},"bundleDependencies":false,"deprecated":false,"description":"7zip Windows Package via Node.js","homepage":"https://github.com/fritx/win-7zip#readme","keywords":["7z","7zip","7-zip","windows","install"],"license":"GNU LGPL","main":"index.js","name":"7zip","repository":{"type":"git","url":"git+ssh://git@github.com/fritx/win-7zip.git"},"scripts":{"test":"mocha"},"version":"0.0.6"}
+module.exports = {"_args":[["7zip@0.0.6","V:\\ProyectosElectron\\time.squid"]],"_development":true,"_from":"7zip@0.0.6","_id":"7zip@0.0.6","_inBundle":false,"_integrity":"sha1-nK+xca+CMpSQNTtIFvAzR6oVCjA=","_location":"/7zip","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"7zip@0.0.6","name":"7zip","escapedName":"7zip","rawSpec":"0.0.6","saveSpec":null,"fetchSpec":"0.0.6"},"_requiredBy":["/electron-devtools-installer"],"_resolved":"https://registry.npmjs.org/7zip/-/7zip-0.0.6.tgz","_spec":"0.0.6","_where":"V:\\ProyectosElectron\\time.squid","bin":{"7z":"7zip-lite/7z.exe"},"bugs":{"url":"https://github.com/fritx/win-7zip/issues"},"description":"7zip Windows Package via Node.js","homepage":"https://github.com/fritx/win-7zip#readme","keywords":["7z","7zip","7-zip","windows","install"],"license":"GNU LGPL","main":"index.js","name":"7zip","repository":{"type":"git","url":"git+ssh://git@github.com/fritx/win-7zip.git"},"scripts":{"test":"mocha"},"version":"0.0.6"}
 
 /***/ }),
 /* 47 */

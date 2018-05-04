@@ -13,6 +13,11 @@ export default new Router({
     {
       path: '*',
       redirect: '/'
+    },
+    {
+      path: '/register-index',
+      name: 'register-index',
+      component: require('@/components/Register/index').default
     }
   ]
 })
