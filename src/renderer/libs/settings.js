@@ -1,5 +1,6 @@
 const Config = require('electron-config')
 const config = new Config({
+  name: 'configTime',
   encryptionKey: 'oiV32mVp5lOwYneFESjrWq2xFByNOvNj'
 })
 const sesion = new Config({
@@ -9,7 +10,7 @@ const sesion = new Config({
 const fs = require('fs')
 
 exports.getDocumentsExist = (_callback) => {
-  let pathIndexDoc = config.path.replace('config.json', '') + 'packages-documentation/README.md'
+  let pathIndexDoc = config.path.replace('configTime.json', '') + 'packages-documentation/README.md'
   require('fs').access(pathIndexDoc, (err) => {
     if (!err) {
       _callback(true)
@@ -20,22 +21,22 @@ exports.getDocumentsExist = (_callback) => {
 }
 
 exports.getDocumentsPath = () => {
-  return config.path.replace('config.json', '')
+  return config.path.replace('configTime.json', '')
 }
 
 exports.updateTempPath = () => {
   const fs = require('fs')
   const fsextra = require('fs-extra')
-  fs.stat(config.path.replace('config.json', '') + 'temps', (err, stats) => {
+  fs.stat(config.path.replace('configTime.json', '') + 'temps', (err, stats) => {
     if (err) {
       console.log('fs.stat', err)
-      fs.mkdirSync(config.path.replace('config.json', '') + 'temps')
+      fs.mkdirSync(config.path.replace('configTime.json', '') + 'temps')
     } else {
-      fsextra.remove(config.path.replace('config.json', '') + 'temps', (err) => {
+      fsextra.remove(config.path.replace('configTime.json', '') + 'temps', (err) => {
         if (err) {
           console.log('fs.unlink', err)
         } else {
-          fs.mkdirSync(config.path.replace('config.json', '') + 'temps')
+          fs.mkdirSync(config.path.replace('configTime.json', '') + 'temps')
         }
       })
     }
@@ -114,7 +115,7 @@ exports.createConfigContent = () => {
   // verificacion de la existencia de la llave de la lista de conexiones
   verificacion = config.has('connections')
   if (verificacion === false) {
-    config.set('connections', [{ 'id': 0, 'name': 'localhost', 'host': '127.0.0.1', 'port': 3306, 'database': 'billsdelivery_1', 'usd': 'root', 'pwd': 'gata1125' }])
+    config.set('connections', [{ 'id': 0, 'name': 'localhost', 'host': '127.0.0.1', 'port': 3306, 'database': 'bd_cootrasmar_time_squid_produccion', 'usd': 'root', 'pwd': 'gata1125' }])
     message = message + 'Se han insertado los siguientes datos en la configuracion del sistema:  \r\n ' + '*Conexion por defecto : localhost' + '\r\n'
   }
   return {'message': '*createConfigContent* Acciones realizadas: \r\n ' + message}

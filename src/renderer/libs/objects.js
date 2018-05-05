@@ -1,3 +1,4 @@
+const moments = require('moment')
 /**
  * Clase de almacenamiento logico de los datos de la empresa.
  */
@@ -13,7 +14,7 @@ export class Empresa {
     this.id = id
     this.numeroidentificacion = numeroidentificacion
     this.nombre = nombre.toUpperCase()
-    this.logo = logo
+    this.logo = 'data:image/png;base64, ' + logo.toString('base64').replace('data:image/png;base64 ', '')
   }
 }
 
@@ -56,9 +57,10 @@ export class Personal {
     this.numeroidentificacion = numeroidentificacion
     this.apellidos = apellidos.toUpperCase()
     this.nombres = nombres.toUpperCase()
+    this.nombreCompleto = this.nombres + ' ' + this.apellidos
     this.correoelectronico = correoelectronico.toUpperCase()
     this.cargo = cargo
-    this.foto = foto
+    this.foto = 'data:image/png;base64, ' + foto.toString('base64').replace('data:image/png;base64 ', '')
     this.objOficina = objOficina
   }
 }
@@ -83,5 +85,45 @@ export class RegistroAsistencia {
     this.horasalida = horasalida
     this.estadoreg = estadoreg
     this.objPersonal = objPersonal
+    if (estadoreg === 1) {
+      let moment1, moment2
+      moment1 = moments(this.horallegada)
+      moment2 = moments(this.horasalida)
+      this.permanencia = moment2.diff(moment1, 'm')
+    } else if (estadoreg === 0) {
+      let moment1, moment2
+      let fechactual = new Date(Date.now())
+      let diaactual, mesactual, anoactual
+      diaactual = fechactual.getDay() - 1
+      mesactual = fechactual.getMonth() + 1
+      anoactual = fechactual.getFullYear()
+      if (diaactual < 10) {
+        diaactual = '0' + diaactual.toString()
+      }
+      if (mesactual < 10) {
+        mesactual = '0' + mesactual.toString()
+      }
+      moment1 = moments(this.horallegada)
+      moment2 = moments(anoactual + '-' + mesactual + '-' + diaactual + ' ' + fechactual.toLocaleTimeString())
+      this.permanencia = moment2.diff(moment1, 'm')
+    }
+  }
+}
+
+export class Usuario {
+  /**
+   * Constructor de la estructura logica.
+   * @param {number} id Numero de identificacion del registro en la tabla de la BD.
+   * @param {string} nombresapellidos Nombres y apellidos del dueño del usuario.
+   * @param {string} identificacion Numero de identificacion del dueño del usuario.
+   * @param {string} nickname Nickname de inicio de sesion.
+   * @param {string} password Contraseña de inicio de sesion.
+   */
+  constructor (id, nombresapellidos, identificacion, nickname, password) {
+    this.id = id
+    this.nombresapellidos = nombresapellidos.toUpperCase()
+    this.identificacion = identificacion
+    this.nickname = nickname.toUpperCase()
+    this.password = password
   }
 }
