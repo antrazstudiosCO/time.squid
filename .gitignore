@@ -29,3 +29,7 @@ node_modules
 
 # Addittional files
 .DS_Store
+*.exe
+*.exe.blockmap
+build/win-unpacked
+dist/electron

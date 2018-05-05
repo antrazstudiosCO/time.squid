@@ -52,7 +52,7 @@
             </FormItem>
           </i-form>
           <hr v-if="form_registrosdiarios !== undefined">
-          <i-table border :columns="form_registrosdiariosColumnas" :data="form_registrosdiarios" size="small" :stripe="false" v-if="form_registrosdiarios !== undefined"></i-table>
+          <i-table v-if="form_registrosdiarios !== undefined" border :columns="form_registrosdiariosColumnas" :data="form_registrosdiarios" size="small" :stripe="false" ></i-table>
           <hr v-if="form_registrosdiarios !== undefined">
           <label v-if="form_registrosdiarios !== undefined" style="margin-left: 10px;">ACUMULADO PERMANENCIA: {{(form_permanenciaDiaria / 60).toFixed(0) + ' H ' + (form_permanenciaDiaria % 60) + 'M'}}</label>
         </Card>
@@ -124,9 +124,9 @@ export default {
   methods: {
     keyMonitor (event) {
       // prueba
-      console.log(event)
       if (event.key === 'Enter') {
         if (this.form_Personal === null) {
+          this.form_registrosdiarios = undefined
           sql.getPersonalInfo(this.form_numeroidentificacion, sql.getActualConn()).then((rta) => {
             if (rta.rtaType === 'ERROR') {
               this.$Message.error({
@@ -153,11 +153,15 @@ export default {
                 mesactual = '0' + mesactual.toString()
               }
               sql.getRegistrosDiarios(this.form_numeroidentificacion, anoactual + '-' + mesactual + '-' + diaactual + ' 00:00:00', anoactual + '-' + mesactual + '-' + diaactual + ' 23:59:59', sql.getActualConn()).then((rta) => {
-                if (rta.result.length !== 0) {
-                  this.form_registrosdiarios = rta.result
-                  this.form_registrosdiarios.forEach(element => {
-                    this.form_permanenciaDiaria = this.form_permanenciaDiaria + element.permanencia
-                  })
+                if (rta.result['length']) {
+                  if (rta.result.length !== 0) {
+                    this.form_registrosdiarios = rta.result
+                    this.form_registrosdiarios.forEach(element => {
+                      this.form_permanenciaDiaria = this.form_permanenciaDiaria + element.permanencia
+                    })
+                  } else {
+                    this.form_registrosdiarios = undefined
+                  }
                 } else {
                   this.form_registrosdiarios = undefined
                 }

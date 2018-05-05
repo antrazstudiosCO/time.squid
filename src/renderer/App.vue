@@ -105,6 +105,7 @@
       })
       // Obtenemos el nombre de la plataforma desde donde se obtuvo
       this.appapp_Platform = process.platform
+      this.windowMaximize()
       // Se crea el archivo de configuracion general
       settings.createConfigContent()
       // Se elimina cualquier sesion que pueda existir
