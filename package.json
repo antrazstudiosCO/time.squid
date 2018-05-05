@@ -1,7 +1,7 @@
 {
   "name": "timesquid",
-  "version": "0.0.1",
-  "deployVersion": "ALPHA",
+  "version": "0.1.0",
+  "deployVersion": "BETA",
   "author": "CarlosVasquez <ingcarlosvasquez@outlook.com>",
   "description": "Proyecto para el control de llegada y salida de personal",
   "license": null,

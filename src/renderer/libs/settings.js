@@ -115,7 +115,7 @@ exports.createConfigContent = () => {
   // verificacion de la existencia de la llave de la lista de conexiones
   verificacion = config.has('connections')
   if (verificacion === false) {
-    config.set('connections', [{ 'id': 0, 'name': 'localhost', 'host': '127.0.0.1', 'port': 3306, 'database': 'bd_cootrasmar_time_squid_produccion', 'usd': 'root', 'pwd': 'gata1125' }])
+    config.set('connections', [{ 'id': 0, 'name': 'COOTRASMAR SERVER', 'host': '172.16.49.183', 'port': 3306, 'database': 'bd_cootrasmar_time_squid_produccion', 'usd': 'root', 'pwd': 'medicontrol' }])
     message = message + 'Se han insertado los siguientes datos en la configuracion del sistema:  \r\n ' + '*Conexion por defecto : localhost' + '\r\n'
   }
   return {'message': '*createConfigContent* Acciones realizadas: \r\n ' + message}
