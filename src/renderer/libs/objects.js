@@ -1,4 +1,28 @@
 const moments = require('moment')
+
+/**
+ * Clase de almacenamiento logico de configuracion de empresa
+ */
+export class Config {
+  /**
+   * Constructor de la estructura logica
+   * @param {number} id Numero de identificacion del registro en la tabla de la BD.
+   * @param {string} emailSend Email al que seran enviadas las notificaciones de correo electronico.
+   * @param {string} maxtime0 Tiempo maximo de llegada en la jornada 0
+   * @param {string} maxtime1 Tiempo maximo de llegada en la jornada 1
+   * @param {string} maxtime2 Tiempo maximo de llegada en la jornada 2.
+   * @param {number} emailState Puede ser 0 o 1, define si se envian correos o no
+   */
+  constructor (id, emailSend, maxtime0, maxtime1, maxtime2, emailState) {
+    this.id = id
+    this.emailSend = emailSend
+    this.maxtime0 = maxtime0
+    this.maxtime1 = maxtime1
+    this.maxtime2 = maxtime2
+    this.emailState = emailState
+  }
+}
+
 /**
  * Clase de almacenamiento logico de los datos de la empresa.
  */
@@ -9,12 +33,14 @@ export class Empresa {
    * @param {string} numeroidentificacion Numero de NIT con codigo de verificacion de la empresa.
    * @param {string} nombre Nombre de la empresa en cuestion.
    * @param {object} logo Objeto tipo BLOB que representa el logotipo de la entidad se convierte en una imagen base64-png.
+   * @param {Config} objConfig Objeto de tipo CONFIG para almacenar la configuracion de la empresa
    */
-  constructor (id, numeroidentificacion, nombre, logo) {
+  constructor (id, numeroidentificacion, nombre, logo, objConfig) {
     this.id = id
     this.numeroidentificacion = numeroidentificacion
     this.nombre = nombre.toUpperCase()
     this.logo = 'data:image/png;base64, ' + logo.toString('base64').replace('data:image/png;base64 ', '')
+    this.objConfig = objConfig
   }
 }
 

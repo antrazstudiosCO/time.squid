@@ -19,7 +19,7 @@
         </div>
         <!-- Contenedor Derecho -->
         <div class="footer-container">
-          <Tag class="footer-item-tag text" v-if="app_actualProfile !== ''">
+          <Tag class="footer-item-tag text">
             <Icon type="link"/>
             Conectado a: {{ require('./libs/settings.js').getConnectionName() }}
           </Tag>
@@ -28,7 +28,7 @@
             <Tag class="footer-item-tag clicker" style="background-color: #1abc9c" @click="connectionsAssitantShow()">Conexiones</Tag>
             <div slot="content">
               <Row>
-                <Button @click="connectionsModal = !connectionsModal" style="width: 100%; margin-bottom: 5px">Cambiar conexion actual</Button>
+                <Button @click="app_Layout_connectionsModal = !app_Layout_connectionsModal" style="width: 100%; margin-bottom: 5px">Cambiar conexion actual</Button>
               </Row>
               <Row>
                 <Button @click="connectionsAssitantShow()" style="width: 100%">Asistente de conexiones</Button>
@@ -56,6 +56,16 @@
         </i-col>
       </Row>    
     </div>
+    <!-- Asistente de Cambio de Conexion -->
+    <Modal v-model="app_Layout_connectionsModal" :ok-text="'CAMBIAR CONEXION'" :cancel-text="'CANCELAR'" :title="'Asistente de Cambio de conexion'" @on-ok="changeDefaultConnection()" :mask-closable="false">
+      <div id="divConexionActual" class="layout-text-item">
+        <h4 style="display: inline">Conexion: </h4>
+        <i-select v-model="app_Layout_connectionSelected" clereable>
+          <i-option v-for="item in app_Layout_connectionsList" :value="item.name" :key="item.id">{{ item.name }}</i-option>
+        </i-select>
+      </div>
+    </Modal>
+    <!-- Pantalla de Carga -->
     <Spin v-if="app_Layout_visibleLoadObject" fix>
       <div>
         <Icon v-if="app_Layout_visibleLoadType === 'normal'" class="spin-icon-load" type="ios-loop" size="40"/>
@@ -74,6 +84,9 @@
     data () {
       return {
         system_electronRemote: null,
+        app_Layout_connectionsModal: false,
+        app_Layout_connectionSelected: '',
+        app_Layout_connectionsList: [],
         app_Platform: 'windows',
         app_Layout_colorVersion: '',
         app_Layout_marginTop: 20,
@@ -110,6 +123,9 @@
       settings.createConfigContent()
       // Se elimina cualquier sesion que pueda existir
       settings.endSesion()
+      console.log(settings.getDocumentsPath())
+      // Cargar conexiones en la lista
+      this.chargeConnections()
       // Obtenemos el numero de la version
       switch (settings.getDeployVersionApp()) {
         case 'ALPHA':
@@ -172,6 +188,37 @@
       },
       handleSpinHide () {
         this.app_Layout_visibleLoadObject = false
+      },
+      chargeConnections () {
+        let defaultConnName = settings.getContentFromLocalKey('defaultConn')
+        let i = 0
+        this.app_Layout_connectionsList = settings.getContentFromLocalKey('connections')
+        for (i; i <= this.app_Layout_connectionsList.length - 1; i++) {
+          if (this.app_Layout_connectionsList[i].id === defaultConnName) {
+            this.app_Layout_connectionSelected = this.app_Layout_connectionsList[i].name
+          }
+        }
+      },
+      changeDefaultConnection () {
+        for (let i = 0; i < this.app_Layout_connectionsList.length; i++) {
+          if (this.app_Layout_connectionsList[i].name === this.app_Layout_connectionSelected) {
+            settings.addContentToLocalKey('defaultConn', this.app_Layout_connectionsList[i].id)
+          }
+        }
+        // Se elimina cualquier sesion que pueda existir
+        this.closeSesion()
+        this.$Message.warning({
+          content: 'Se ha reiniciado su sesion',
+          duration: 10
+        })
+        this.changePath('/')
+        this.changePath('/register-index')
+      },
+      connectionsAssitantShow () {
+        this.changePath('/sql/connections')
+      },
+      returnPath () {
+        this.$router.go(-1)
       }
     }
   }

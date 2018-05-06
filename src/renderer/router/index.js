@@ -18,6 +18,11 @@ export default new Router({
       path: '/register-index',
       name: 'register-index',
       component: require('@/components/Register/index').default
+    },
+    {
+      path: '/sql/connections',
+      name: 'connections-assistant',
+      component: require('@/components/sql/ConnectionsAssistant').default
     }
   ]
 })

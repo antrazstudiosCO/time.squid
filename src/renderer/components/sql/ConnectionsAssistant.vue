@@ -1,25 +1,3 @@
-<style scoped>
-  .content{
-    width: 100%;
-    min-height: 100%;
-    padding: 20px;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: right;
-    user-select: none;
-  }
-  .layout-text-item{
-    margin: 8px 0px;
-  }
-  .form-text{
-    text-align: center;
-  }
-  .form-object{
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-  }
-</style>
 <template>
   <div class="content">
     <Row style="margin: 0px 20px 10px 0px;">
@@ -55,7 +33,7 @@
           <i-button slot="extra" @click="cancelClick()">Cancelar</i-button>
         </div>
         <div>
-          <Form class="form-object" ref="connectionEdit" :model="connectionEdit" :rules="ruleInline" :label-width="150">
+          <Form class="form-obj" ref="connectionEdit" :model="connectionEdit" :rules="ruleInline" :label-width="150">
             <FormItem prop="name" label="Nombre del perfil">
               <Input type="text" v-model="connectionEdit.name"></Input>
             </FormItem>
@@ -82,7 +60,7 @@
 </template>
 <script>
   export default {
-    name: 'connectionsassistant',
+    name: 'connections-assistant',
     data () {
       return {
         // Lista de conexiones
@@ -341,7 +319,7 @@
       },
       testClick (connection) {
         this.$parent.handleSpinShow('Conectando con el servidor, verificando conexion')
-        require('../../libs/storage.js').testConnection(connection.host, connection.port, connection.usd, connection.pwd, connection.database, (rta) => {
+        require('../../libs/sql.js').testConnection(connection.host, connection.port, connection.usd, connection.pwd, connection.database, (rta) => {
           if (rta === null) {
             this.$Notice.success({
               title: 'Resultado de prueba de Conexion',
@@ -384,3 +362,22 @@
     }
   }
 </script>
+<style scoped>
+  .content{
+    width: 100%;
+    min-height: 100%;
+    padding: 20px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: right;
+    user-select: none;
+  }
+  .layout-text-item{
+    margin: 8px 0px;
+  }
+  .form-obj{
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+</style>

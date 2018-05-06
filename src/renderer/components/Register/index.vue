@@ -61,9 +61,11 @@
   </div>
 </template>
 <script>
+import fs from 'fs'
+import path from 'path'
 const sql = require('../../libs/sql')
 const settings = require('../../libs/settings')
-// const objects = require('../../libs/objects')
+const mailer = require('../../libs/mailer')
 export default {
   name: 'register-index',
   data () {
@@ -99,7 +101,9 @@ export default {
       form_time: '',
       form_timeH: 0,
       form_timeM: 0,
-      form_timeS: 0
+      form_timeS: 0,
+      form_maxTime: '',
+      form_htmlmailContent: ''
     }
   },
   mounted () {
@@ -108,7 +112,8 @@ export default {
     // funciones de datos
     let connection = sql.getActualConn()
     sql.createSesion('ROOT', 'Gata1125*', connection).then((respuesta) => {
-      settings.createSesion(respuesta.result, settings.getConnectionbyId(settings.getContentFromLocalKey('defaultConn')))
+      let actualConn = settings.getConnectionbyId(settings.getContentFromLocalKey('defaultConn'))
+      settings.createSesion(respuesta.result, actualConn.name)
       this.form_numIdUser = respuesta.result.id
       this.$Message.info('Sesion iniciada correctamente')
       this.$parent.handleSpinHide()
@@ -120,6 +125,8 @@ export default {
         content: err
       })
     })
+    // leer archivo de plantilla html
+    this.form_htmlmailContent = fs.readFileSync(path.join(__static, '/laternoti-responsive.html'), 'utf8')
   },
   methods: {
     keyMonitor (event) {
@@ -141,11 +148,14 @@ export default {
                 this.form_typeRecord = 'SALIDA'
                 this.form_registroInfo = rta.result2
               }
+              // Obtener registros de la fecha actual
               let fechactual = new Date(Date.now())
+              fechactual = fechactual.toLocaleDateString().split('/')
+              console.log(fechactual)
               let diaactual, mesactual, anoactual
-              diaactual = fechactual.getDay() - 1
-              mesactual = fechactual.getMonth() + 1
-              anoactual = fechactual.getFullYear()
+              diaactual = parseInt(fechactual[0])
+              mesactual = parseInt(fechactual[1])
+              anoactual = parseInt(fechactual[2])
               if (diaactual < 10) {
                 diaactual = '0' + diaactual.toString()
               }
@@ -168,20 +178,95 @@ export default {
               }).catch((err) => {
                 this.$Message.error('Ha ocurrido un error en tiempo de ejecucion: ' + err)
               })
+              // obtener el tiempo maximo
+              this.form_maxTime = this.form_jornada === 0 ? this.form_Personal.objOficina.objEmpresa.objConfig.maxtime0 : this.form_jornada === 1 ? this.form_Personal.objOficina.objEmpresa.objConfig.maxtime1 : this.form_Personal.objOficina.objEmpresa.objConfig.maxtime2
+              this.form_maxTime = this.form_maxTime.split(':')
             }
             this.setFocus()
           })
         } else {
           if (this.form_typeRecord === 'ENTRADA') {
             sql.createRegistroInfo(this.form_numIdUser, this.form_numeroidentificacion, this.form_jornada, sql.getActualConn()).then((rta) => {
-              this.$Message.success({
-                content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
-                duration: 8
-              })
+              // Verificacion si estan activados los emails
+              if (this.form_Personal.objOficina.objEmpresa.objConfig.emailState === 1) {
+                // verificar si es la primera vez que entra en la jornada actual
+                let contador = 0
+                if (this.form_registrosdiarios !== undefined) {
+                  this.form_registrosdiarios.forEach(element => {
+                    if (element.jornada === this.form_jornada) {
+                      contador = contador + 1
+                    }
+                  })
+                }
+                if (contador === 0) {
+                  // Verifica si esta retrasada
+                  if (this.form_maxTime[0] <= this.form_timeH && this.form_maxTime[1] < this.form_timeM) {
+                    this.$parent.handleSpinShow('Un momento por favor')
+                    let htmlContent = this.form_htmlmailContent
+                    console.log(htmlContent)
+                    // reemplazamos valores
+                    htmlContent = htmlContent.replace('[##EMPRESA:NAME##]', this.form_Personal.objOficina.objEmpresa.nombre)
+                    htmlContent = htmlContent.replace('[##FUNCIONARIO:NOMBRE##]', this.form_Personal.nombreCompleto)
+                    htmlContent = htmlContent.replace('[##JORNADA##]', this.form_jornada === 0 ? 'MAÑANA' : this.form_jornada === 1 ? 'TARDE' : 'ADICIONAL')
+                    // mailer.sendMail('ingcarlosvasquez@outlook.com, antrazstudios@gmail.com', 'NOTIFICACION AUTOMATICA DE LLEGADA TARDE A: ' + this.form_Personal.objOficina.objEmpresa.nombre, htmlContent).then((info) => {
+                    //   console.log('Mailer', info)
+                    //   this.$parent.handleSpinHide()
+                    //   this.restart()
+                    //   this.$Message.success({
+                    //     content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                    //     duration: 8
+                    //   })
+                    // }).catch((err) => {
+                    //   this.$parent.handleSpinHide()
+                    //   this.$Message.error({
+                    //     content: 'ERROR EN TIEMPO DE EJECUCION: ' + err,
+                    //     duration: 8
+                    //   })
+                    //   this.restart()
+                    //   this.$Message.success({
+                    //     content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                    //     duration: 8
+                    //   })
+                    // })
+                    mailer.sendMail(this.form_Personal.correoelectronico.toLowerCase() + ', ' + this.form_Personal.objOficina.objEmpresa.objConfig.emailSend.toLowerCase(), 'NOTIFICACION AUTOMATICA DE LLEGADA TARDE A: ' + this.form_Personal.objOficina.objEmpresa.nombre, htmlContent).then((info) => {
+                      console.log('Mailer', info)
+                      this.$parent.handleSpinHide()
+                      this.restart()
+                      this.$Message.success({
+                        content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                        duration: 8
+                      })
+                    }).catch((err) => {
+                      this.$parent.handleSpinHide()
+                      this.$Message.error({
+                        content: 'ERROR EN TIEMPO DE EJECUCION: ' + err,
+                        duration: 8
+                      })
+                      this.restart()
+                      this.$Message.success({
+                        content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                        duration: 8
+                      })
+                    })
+                  }
+                } else {
+                  this.restart()
+                  this.$Message.success({
+                    content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                    duration: 8
+                  })
+                }
+              } else {
+                this.$Message.success({
+                  content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                  duration: 8
+                })
+                this.restart()
+              }
             }).catch((err) => {
               this.$Message.error('HA OCURRIDO UN ERROR VUELVA A INTENTARLO: ' + err)
+              this.restart()
             })
-            this.restart()
           } else {
             sql.updateRegistroInfo(this.form_numIdUser, this.form_registroInfo.id, sql.getActualConn()).then((rta) => {
               this.$Message.success({
@@ -206,7 +291,7 @@ export default {
       this.form_timeM = this.checkTime(this.form_timeM)
       this.form_timeS = this.checkTime(this.form_timeS)
       this.form_time = this.form_timeH + ':' + this.form_timeM + ':' + this.form_timeS
-      if (this.form_timeH > 12) {
+      if (this.form_timeH > 12 && this.form_timeH < 18) {
         this.form_jornada = 1
       } else if (this.form_timeH < 13) {
         this.form_jornada = 0
@@ -229,6 +314,7 @@ export default {
       this.form_typeRecord = 'ENTRADA'
       this.form_registroInfo = null
       this.form_permanenciaDiaria = 0
+      this.form_maxTime = ''
       this.setFocus()
     }
   }
@@ -262,3 +348,4 @@ export default {
     color: #498be2;
   }
 </style>
+

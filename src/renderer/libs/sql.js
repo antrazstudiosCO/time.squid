@@ -1,6 +1,27 @@
+
 const sql = require('mysql')
 const q = require('q')
 const objects = require('./objects')
+
+export function testConnection (hostVar, portVar, userVar, passVar, databaseVar, _callback) {
+  let mysql = require('mysql')
+  let mysqlConnection = mysql.createConnection({
+    port: portVar,
+    host: hostVar,
+    user: userVar,
+    password: passVar,
+    database: databaseVar
+  })
+  mysqlConnection.connect((err) => {
+    if (err === null) {
+      mysqlConnection.end(() => {
+        _callback(null)
+      })
+    } else {
+      return _callback(err)
+    }
+  })
+}
 
 export function getActualConn () {
   let settings = require('./settings.js')
@@ -83,9 +104,14 @@ export function getPersonalInfo (numIdentificacion, connection) {
   let deferred = q.defer()
   this._runQuery({ query: 'call getPersonalinfo(?)', parameters: [numIdentificacion] }, connection).then((rta) => {
     if (rta.result[0].length !== 0) {
+      // creacion de objetos
+      let config = new objects.Config(rta.result[0][0].idtb_config, rta.result[0][0].tb_config_emailsend, rta.result[0][0].tb_config_maxtime0, rta.result[0][0].tb_config_maxtime1, rta.result[0][0].tb_config_maxtime2, rta.result[0][0].tb_config_emailstate)
+      let empresa = new objects.Empresa(rta.result[0][0].idtb_empresa, rta.result[0][0].tb_empresa_nit, rta.result[0][0].tb_empresa_nombre, rta.result[0][0].tb_empresa_logo, config)
+      let oficina = new objects.Oficina(rta.result[0][0].idtb_oficinas, rta.result[0][0].tb_oficinas_nombre, rta.result[0][0].tb_oficinas_jefedirecto, empresa)
+      let persona = new objects.Personal(rta.result[0][0].idtb_personal, rta.result[0][0].tb_personal_numeroidentificacion, rta.result[0][0].tb_personal_apellidos, rta.result[0][0].tb_personal_nombres, rta.result[0][0].tb_personal_correoelectronico, rta.result[0][0].tb_personal_cargo, rta.result[0][0].tb_personal_foto, oficina)
       data.rtaType = 'OK'
       data.rtaContent = 'Funcionario localizado'
-      data.result1 = new objects.Personal(rta.result[0][0].idtb_personal, rta.result[0][0].tb_personal_numeroidentificacion, rta.result[0][0].tb_personal_apellidos, rta.result[0][0].tb_personal_nombres, rta.result[0][0].tb_personal_correoelectronico, rta.result[0][0].tb_personal_cargo, rta.result[0][0].tb_personal_foto, new objects.Oficina(rta.result[0][0].idtb_oficinas, rta.result[0][0].tb_oficinas_nombre, rta.result[0][0].tb_oficinas_jefedirecto, new objects.Empresa(rta.result[0][0].idtb_empresa, rta.result[0][0].tb_empresa_nit, rta.result[0][0].tb_empresa_nombre, rta.result[0][0].tb_empresa_logo)))
+      data.result1 = persona
       if (rta.result[1][0] !== undefined) {
         data.result2 = new objects.RegistroAsistencia(rta.result[1][0].idtb_registroasistencia, rta.result[1][0].tb_registroasistencia_jornada, rta.result[1][0].tb_registroasistencia_horallegada, rta.result[1][0].tb_registroasistencia_horasalida, rta.result[1][0].tb_registroasistencia_estadoreg, data.result1)
       } else {
