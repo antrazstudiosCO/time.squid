@@ -151,7 +151,6 @@ export default {
               // Obtener registros de la fecha actual
               let fechactual = new Date(Date.now())
               fechactual = fechactual.toLocaleDateString().split('/')
-              console.log(fechactual)
               let diaactual, mesactual, anoactual
               diaactual = parseInt(fechactual[0])
               mesactual = parseInt(fechactual[1])

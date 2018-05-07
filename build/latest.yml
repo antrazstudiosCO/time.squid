@@ -1,9 +1,9 @@
-version: 0.1.0
+version: 1.0.0
 files:
-  - url: timesquid-setup-0.1.0.exe
-    sha512: isRw2qn544WFx/gg9/PVmKRvNYmOS2A7aAeOvX5PCHbLqFZfm4HsKQGMAsNPw+RGp9UIOA6J8ufGYnNxXLdDVA==
-    size: 39577868
-path: timesquid-setup-0.1.0.exe
-sha512: isRw2qn544WFx/gg9/PVmKRvNYmOS2A7aAeOvX5PCHbLqFZfm4HsKQGMAsNPw+RGp9UIOA6J8ufGYnNxXLdDVA==
-sha2: 87ba1ab430f0405379a523b120716a2a82d006962076bac3a2aefca5f38c247f
-releaseDate: '2018-05-05T18:07:58.945Z'
+  - url: timesquid-setup-1.0.0.exe
+    sha512: 2f6mI/4m/gR6OO8uJDz8h3kBoYKVXLAbNJtDRBslBiqc/e37jLfq55DBgTBNc4Pl2/qEGjJDOVuxU/4K6oY1KA==
+    size: 39605613
+path: timesquid-setup-1.0.0.exe
+sha512: 2f6mI/4m/gR6OO8uJDz8h3kBoYKVXLAbNJtDRBslBiqc/e37jLfq55DBgTBNc4Pl2/qEGjJDOVuxU/4K6oY1KA==
+sha2: 479a60c1e1c229b06bfe150a86eba99739299ee6b5faee43b387b5352f70454c
+releaseDate: '2018-05-07T00:16:15.309Z'

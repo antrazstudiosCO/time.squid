@@ -119,10 +119,12 @@ export class RegistroAsistencia {
     } else if (estadoreg === 0) {
       let moment1, moment2
       let fechactual = new Date(Date.now())
+      let horaactual = fechactual.toLocaleTimeString()
+      fechactual = fechactual.toLocaleDateString().split('/')
       let diaactual, mesactual, anoactual
-      diaactual = fechactual.getDay() - 1
-      mesactual = fechactual.getMonth() + 1
-      anoactual = fechactual.getFullYear()
+      diaactual = parseInt(fechactual[0])
+      mesactual = parseInt(fechactual[1])
+      anoactual = parseInt(fechactual[2])
       if (diaactual < 10) {
         diaactual = '0' + diaactual.toString()
       }
@@ -130,7 +132,7 @@ export class RegistroAsistencia {
         mesactual = '0' + mesactual.toString()
       }
       moment1 = moments(this.horallegada)
-      moment2 = moments(anoactual + '-' + mesactual + '-' + diaactual + ' ' + fechactual.toLocaleTimeString())
+      moment2 = moments(anoactual + '-' + mesactual + '-' + diaactual + ' ' + horaactual)
       this.permanencia = moment2.diff(moment1, 'm')
     }
   }
