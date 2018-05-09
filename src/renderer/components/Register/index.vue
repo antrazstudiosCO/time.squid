@@ -15,6 +15,16 @@
         </div>
       </i-col>
     </Row>
+    <hr v-if="form_notificationShow">
+    <transition name="fade">
+      <Row type="flex" justify="center" v-if="form_notificationShow" :gutter="16">
+        <i-col span="10">
+          <Alert style="margin" :type="form_notificationType" show-icon>
+            <span class="contentnoti" slot="desc">{{form_notificationContent.toUpperCase()}}</span>
+          </Alert>
+        </i-col>
+      </Row>
+    </transition>
     <hr>
     <Row type="flex" justify="center" :gutter="16">
       <i-col span="12">
@@ -103,7 +113,12 @@ export default {
       form_timeM: 0,
       form_timeS: 0,
       form_maxTime: '',
-      form_htmlmailContent: ''
+      form_htmlmailContent: '',
+      form_notificationShow: false,
+      form_notificationType: 'success',
+      form_notificationContent: 'Soy el contenido de una notificacion de doble linea. Tengo muchos mas contenido para mostrar.',
+      form_inProccess: false,
+      form_notificationTick: 0
     }
   },
   mounted () {
@@ -131,155 +146,165 @@ export default {
   methods: {
     keyMonitor (event) {
       // prueba
-      if (event.key === 'Enter') {
-        if (this.form_Personal === null) {
-          this.form_registrosdiarios = undefined
-          sql.getPersonalInfo(this.form_numeroidentificacion, sql.getActualConn()).then((rta) => {
-            if (rta.rtaType === 'ERROR') {
-              this.$Message.error({
-                content: 'FUNCIONARIO NO HA SIDO LOCALIZADO, REVISE EL NUMERO DE DOCUMENTO',
-                duration: 8
-              })
-            } else {
-              this.form_Personal = rta.result1
-              if (rta.result2 === undefined) {
-                this.form_typeRecord = 'ENTRADA'
+      if (this.form_inProccess !== true) {
+        if (event.key === 'Enter') {
+          if (this.form_Personal === null) {
+            this.form_registrosdiarios = undefined
+            this.form_inProccess = true
+            this.$parent.handleSpinShow('Consultando sus datos')
+            sql.getPersonalInfo(this.form_numeroidentificacion, sql.getActualConn()).then((rta) => {
+              if (rta.rtaType === 'ERROR') {
+                this.$parent.handleSpinHide()
+                this.form_inProccess = false
+                this.$Message.error({
+                  content: 'FUNCIONARIO NO HA SIDO LOCALIZADO, REVISE EL NUMERO DE DOCUMENTO',
+                  duration: 8
+                })
               } else {
-                this.form_typeRecord = 'SALIDA'
-                this.form_registroInfo = rta.result2
-              }
-              // Obtener registros de la fecha actual
-              let fechactual = new Date(Date.now())
-              fechactual = fechactual.toLocaleDateString().split('/')
-              let diaactual, mesactual, anoactual
-              diaactual = parseInt(fechactual[0])
-              mesactual = parseInt(fechactual[1])
-              anoactual = parseInt(fechactual[2])
-              if (diaactual < 10) {
-                diaactual = '0' + diaactual.toString()
-              }
-              if (mesactual < 10) {
-                mesactual = '0' + mesactual.toString()
-              }
-              sql.getRegistrosDiarios(this.form_numeroidentificacion, anoactual + '-' + mesactual + '-' + diaactual + ' 00:00:00', anoactual + '-' + mesactual + '-' + diaactual + ' 23:59:59', sql.getActualConn()).then((rta) => {
-                if (rta.result['length']) {
-                  if (rta.result.length !== 0) {
-                    this.form_registrosdiarios = rta.result
-                    this.form_registrosdiarios.forEach(element => {
-                      this.form_permanenciaDiaria = this.form_permanenciaDiaria + element.permanencia
-                    })
+                this.form_Personal = rta.result1
+                if (rta.result2 === undefined) {
+                  this.form_typeRecord = 'ENTRADA'
+                } else {
+                  this.form_typeRecord = 'SALIDA'
+                  this.form_registroInfo = rta.result2
+                }
+                // Obtener registros de la fecha actual
+                let fechactual = new Date(Date.now())
+                fechactual = fechactual.toLocaleDateString().split('/')
+                let diaactual, mesactual, anoactual
+                diaactual = parseInt(fechactual[0])
+                mesactual = parseInt(fechactual[1])
+                anoactual = parseInt(fechactual[2])
+                if (diaactual < 10) {
+                  diaactual = '0' + diaactual.toString()
+                }
+                if (mesactual < 10) {
+                  mesactual = '0' + mesactual.toString()
+                }
+                sql.getRegistrosDiarios(this.form_numeroidentificacion, anoactual + '-' + mesactual + '-' + diaactual + ' 00:00:00', anoactual + '-' + mesactual + '-' + diaactual + ' 23:59:59', sql.getActualConn()).then((rta) => {
+                  if (rta.result['length']) {
+                    if (rta.result.length !== 0) {
+                      this.form_registrosdiarios = rta.result
+                      this.form_registrosdiarios.forEach(element => {
+                        this.form_permanenciaDiaria = this.form_permanenciaDiaria + element.permanencia
+                      })
+                    } else {
+                      this.form_registrosdiarios = undefined
+                    }
                   } else {
                     this.form_registrosdiarios = undefined
                   }
-                } else {
-                  this.form_registrosdiarios = undefined
-                }
-              }).catch((err) => {
-                this.$Message.error('Ha ocurrido un error en tiempo de ejecucion: ' + err)
-              })
-              // obtener el tiempo maximo
-              this.form_maxTime = this.form_jornada === 0 ? this.form_Personal.objOficina.objEmpresa.objConfig.maxtime0 : this.form_jornada === 1 ? this.form_Personal.objOficina.objEmpresa.objConfig.maxtime1 : this.form_Personal.objOficina.objEmpresa.objConfig.maxtime2
-              this.form_maxTime = this.form_maxTime.split(':')
-            }
-            this.setFocus()
-          })
-        } else {
-          if (this.form_typeRecord === 'ENTRADA') {
-            sql.createRegistroInfo(this.form_numIdUser, this.form_numeroidentificacion, this.form_jornada, sql.getActualConn()).then((rta) => {
-              // Verificacion si estan activados los emails
-              if (this.form_Personal.objOficina.objEmpresa.objConfig.emailState === 1) {
-                // verificar si es la primera vez que entra en la jornada actual
-                let contador = 0
-                if (this.form_registrosdiarios !== undefined) {
-                  this.form_registrosdiarios.forEach(element => {
-                    if (element.jornada === this.form_jornada) {
-                      contador = contador + 1
+                  this.$parent.handleSpinHide()
+                  this.form_inProccess = false
+                }).catch((err) => {
+                  this.$Message.error('Ha ocurrido un error en tiempo de ejecucion: ' + err)
+                  this.$parent.handleSpinHide()
+                  this.form_inProccess = false
+                })
+                // obtener el tiempo maximo
+                this.form_maxTime = this.form_jornada === 0 ? this.form_Personal.objOficina.objEmpresa.objConfig.maxtime0 : this.form_jornada === 1 ? this.form_Personal.objOficina.objEmpresa.objConfig.maxtime1 : this.form_Personal.objOficina.objEmpresa.objConfig.maxtime2
+                this.form_maxTime = this.form_maxTime.split(':')
+              }
+              this.setFocus()
+            })
+          } else {
+            if (this.form_typeRecord === 'ENTRADA') {
+              sql.createRegistroInfo(this.form_numIdUser, this.form_numeroidentificacion, this.form_jornada, sql.getActualConn()).then((rta) => {
+                // Verificacion si estan activados los emails
+                if (this.form_Personal.objOficina.objEmpresa.objConfig.emailState === 1) {
+                  // verificar si es la primera vez que entra en la jornada actual
+                  let contador = 0
+                  if (this.form_registrosdiarios !== undefined) {
+                    this.form_registrosdiarios.forEach(element => {
+                      if (element.jornada === this.form_jornada) {
+                        contador = contador + 1
+                      }
+                    })
+                  }
+                  if (contador === 0) {
+                    // Verifica si esta retrasada
+                    if (this.form_maxTime[0] <= this.form_timeH && this.form_maxTime[1] < this.form_timeM) {
+                      this.$parent.handleSpinShow('Un momento por favor')
+                      let htmlContent = this.form_htmlmailContent
+                      console.log(htmlContent)
+                      // reemplazamos valores
+                      htmlContent = htmlContent.replace('[##EMPRESA:NAME##]', this.form_Personal.objOficina.objEmpresa.nombre)
+                      htmlContent = htmlContent.replace('[##FUNCIONARIO:NOMBRE##]', this.form_Personal.nombreCompleto)
+                      htmlContent = htmlContent.replace('[##JORNADA##]', this.form_jornada === 0 ? 'MAÑANA' : this.form_jornada === 1 ? 'TARDE' : 'ADICIONAL')
+                      // mailer.sendMail('ingcarlosvasquez@outlook.com, antrazstudios@gmail.com', 'NOTIFICACION AUTOMATICA DE LLEGADA TARDE A: ' + this.form_Personal.objOficina.objEmpresa.nombre, htmlContent).then((info) => {
+                      //   console.log('Mailer', info)
+                      //   this.$parent.handleSpinHide()
+                      //   this.restart()
+                      //   this.$Message.success({
+                      //     content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                      //     duration: 8
+                      //   })
+                      // }).catch((err) => {
+                      //   this.$parent.handleSpinHide()
+                      //   this.$Message.error({
+                      //     content: 'ERROR EN TIEMPO DE EJECUCION: ' + err,
+                      //     duration: 8
+                      //   })
+                      //   this.restart()
+                      //   this.$Message.success({
+                      //     content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                      //     duration: 8
+                      //   })
+                      // })
+                      mailer.sendMail(this.form_Personal.correoelectronico.toLowerCase() + ', ' + this.form_Personal.objOficina.objEmpresa.objConfig.emailSend.toLowerCase(), 'NOTIFICACION AUTOMATICA DE LLEGADA TARDE A: ' + this.form_Personal.objOficina.objEmpresa.nombre, htmlContent).then((info) => {
+                        console.log('Mailer', info)
+                        this.$parent.handleSpinHide()
+                        this.restart()
+                        this.$Message.success({
+                          content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                          duration: 8
+                        })
+                      }).catch((err) => {
+                        this.$parent.handleSpinHide()
+                        this.$Message.error({
+                          content: 'ERROR EN TIEMPO DE EJECUCION: ' + err,
+                          duration: 8
+                        })
+                        this.restart()
+                        this.$Message.success({
+                          content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                          duration: 8
+                        })
+                      })
                     }
-                  })
-                }
-                if (contador === 0) {
-                  // Verifica si esta retrasada
-                  if (this.form_maxTime[0] <= this.form_timeH && this.form_maxTime[1] < this.form_timeM) {
-                    this.$parent.handleSpinShow('Un momento por favor')
-                    let htmlContent = this.form_htmlmailContent
-                    console.log(htmlContent)
-                    // reemplazamos valores
-                    htmlContent = htmlContent.replace('[##EMPRESA:NAME##]', this.form_Personal.objOficina.objEmpresa.nombre)
-                    htmlContent = htmlContent.replace('[##FUNCIONARIO:NOMBRE##]', this.form_Personal.nombreCompleto)
-                    htmlContent = htmlContent.replace('[##JORNADA##]', this.form_jornada === 0 ? 'MAÑANA' : this.form_jornada === 1 ? 'TARDE' : 'ADICIONAL')
-                    // mailer.sendMail('ingcarlosvasquez@outlook.com, antrazstudios@gmail.com', 'NOTIFICACION AUTOMATICA DE LLEGADA TARDE A: ' + this.form_Personal.objOficina.objEmpresa.nombre, htmlContent).then((info) => {
-                    //   console.log('Mailer', info)
-                    //   this.$parent.handleSpinHide()
-                    //   this.restart()
-                    //   this.$Message.success({
-                    //     content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
-                    //     duration: 8
-                    //   })
-                    // }).catch((err) => {
-                    //   this.$parent.handleSpinHide()
-                    //   this.$Message.error({
-                    //     content: 'ERROR EN TIEMPO DE EJECUCION: ' + err,
-                    //     duration: 8
-                    //   })
-                    //   this.restart()
-                    //   this.$Message.success({
-                    //     content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
-                    //     duration: 8
-                    //   })
-                    // })
-                    mailer.sendMail(this.form_Personal.correoelectronico.toLowerCase() + ', ' + this.form_Personal.objOficina.objEmpresa.objConfig.emailSend.toLowerCase(), 'NOTIFICACION AUTOMATICA DE LLEGADA TARDE A: ' + this.form_Personal.objOficina.objEmpresa.nombre, htmlContent).then((info) => {
-                      console.log('Mailer', info)
-                      this.$parent.handleSpinHide()
-                      this.restart()
-                      this.$Message.success({
-                        content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
-                        duration: 8
-                      })
-                    }).catch((err) => {
-                      this.$parent.handleSpinHide()
-                      this.$Message.error({
-                        content: 'ERROR EN TIEMPO DE EJECUCION: ' + err,
-                        duration: 8
-                      })
-                      this.restart()
-                      this.$Message.success({
-                        content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
-                        duration: 8
-                      })
+                  } else {
+                    this.restart()
+                    this.$Message.success({
+                      content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                      duration: 8
                     })
                   }
                 } else {
+                  this.showNotification('success', 'ENTRADA REGISTRADA EXITOSAMENTE', 8000)
+                  // this.$Message.success({
+                  //   content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
+                  //   duration: 8
+                  // })
                   this.restart()
-                  this.$Message.success({
-                    content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
-                    duration: 8
-                  })
                 }
-              } else {
-                this.$Message.success({
-                  content: 'ENTRADA REGISTRADA EXITOSAMENTE!',
-                  duration: 8
-                })
+              }).catch((err) => {
+                this.$Message.error('HA OCURRIDO UN ERROR VUELVA A INTENTARLO: ' + err)
                 this.restart()
-              }
-            }).catch((err) => {
-              this.$Message.error('HA OCURRIDO UN ERROR VUELVA A INTENTARLO: ' + err)
-              this.restart()
-            })
-          } else {
-            sql.updateRegistroInfo(this.form_numIdUser, this.form_registroInfo.id, sql.getActualConn()).then((rta) => {
-              this.$Message.success({
-                content: 'SALIDA REGISTRADA EXITOSAMENTE!',
-                duration: 8
               })
-            }).catch((err) => {
-              this.$Message.error('HA OCURRIDO UN ERROR VUELVA A INTENTARLO: ' + err)
-            })
-            this.restart()
+            } else {
+              sql.updateRegistroInfo(this.form_numIdUser, this.form_registroInfo.id, sql.getActualConn()).then((rta) => {
+                this.showNotification('success', 'SALIDA REGISTRADA EXITOSAMENTE', 8000)
+              }).catch((err) => {
+                this.$Message.error('HA OCURRIDO UN ERROR VUELVA A INTENTARLO: ' + err)
+              })
+              this.restart()
+            }
           }
+        } else if (event.key === '-') {
+          this.restart()
         }
-      } else if (event.key === '-') {
-        this.restart()
+      } else {
+        this.showNotification('error', 'Existe un proceso en curso, por favor espere', 8000)
       }
     },
     startTime () {
@@ -296,6 +321,11 @@ export default {
         this.form_jornada = 0
       } else if (this.form_timeH > 17) {
         this.form_jornada = 2
+      }
+      if (this.form_notificationTick !== 0) {
+        this.form_notificationTick = this.form_notificationTick - 1
+      } else if (this.form_notificationTick === 0) {
+        this.hideNotification()
       }
       setTimeout(this.startTime, 500)
     },
@@ -314,6 +344,16 @@ export default {
       this.form_registroInfo = null
       this.form_permanenciaDiaria = 0
       this.form_maxTime = ''
+      this.setFocus()
+    },
+    showNotification (type, content, duration) {
+      this.form_notificationType = type
+      this.form_notificationContent = content
+      this.form_notificationShow = true
+      this.form_notificationTick = 8
+    },
+    hideNotification () {
+      this.form_notificationShow = false
       this.setFocus()
     }
   }
@@ -345,6 +385,11 @@ export default {
   h2 {
     font-size: 30px;
     color: #498be2;
+  }
+  .contentnoti {
+    font-size: 30px;
+    margin-top: 20px;
+    opacity: 0.7;
   }
 </style>
 
